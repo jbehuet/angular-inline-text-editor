@@ -5,9 +5,10 @@ angular.module( 'InlineTextEditor', ['ngSanitize']);
 function inlineTextEditor($sce, $compile, $timeout, $window, $sanitize){
   return {
     restrict: 'A',
-    require: '?ngModel',
-    link: function($scope, element, attrs, ngModel) {
-
+    require: ['?ngModel', '?editMode'],
+    link: function($scope, element, attrs, args) {
+      var ngModel = args[0];
+      var editMode = args[1] || false;
       var html, savedSelection, clickPosition, overToolbar, originalToolbar, toolbar;
 
       if (!ngModel) { return; }
@@ -15,6 +16,10 @@ function inlineTextEditor($sce, $compile, $timeout, $window, $sanitize){
       ngModel.$render = function() {
         element.html(ngModel.$viewValue || '');
       };
+
+      attrs.$observe('editMode', function(value) {
+        editMode = value;
+      });
 
       // Write data to the model
       function read() {
@@ -116,7 +121,7 @@ function inlineTextEditor($sce, $compile, $timeout, $window, $sanitize){
           var start = range.anchorOffset;
           var end = range.focusOffset;
 
-          if (!range.isCollapsed) {
+          if (!range.isCollapsed && eval(editMode)) {
             createToolbar();
           } else {
             removeToolbar();
